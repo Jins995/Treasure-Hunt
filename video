@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treasure Hunt</title>
+</head>
+<body>
+    <h1>Treasure Hunt</h1>
+
+    <!-- Button to start recording -->
+    <button id="startRecording">Start Recording</button>
+    <button id="stopRecording" style="display: none;">Stop Recording</button>
+
+    <!-- Video preview element -->
+    <video id="videoPreview" width="640" height="360" autoplay muted></video>
+
+    <!-- WhatsApp sharing link -->
+    <button id="sendWhatsApp" style="display: none;">Send to WhatsApp</button>
+
+    <!-- Button to confirm reply received -->
+    <button id="confirmReply" style="display: none;">I received a reply</button>
+
+    <!-- Placeholder for the image displayed upon confirmation -->
+    <img id="rewardImage" src="reward.jpg" style="display: none; width: 100%; height: auto;" alt="Reward Image">
+
+    <script>
+        const videoPreview = document.getElementById("videoPreview");
+        const startRecordingButton = document.getElementById("startRecording");
+        const stopRecordingButton = document.getElementById("stopRecording");
+        const sendWhatsAppButton = document.getElementById("sendWhatsApp");
+        const confirmReplyButton = document.getElementById("confirmReply");
+        const rewardImage = document.getElementById("rewardImage");
+
+        let mediaRecorder;
+        let recordedChunks = [];
+
+        // Start recording
+        startRecordingButton.addEventListener("click", async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            videoPreview.srcObject = stream;
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            startRecordingButton.style.display = "none";
+            stopRecordingButton.style.display = "block";
+
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) recordedChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const videoBlob = new Blob(recordedChunks, { type: "video/webm" });
+                const videoURL = URL.createObjectURL(videoBlob);
+
+                // Provide a link to share via WhatsApp
+                sendWhatsAppButton.href = `https://wa.me/your_whatsapp_number?text=Check%20out%20this%20video!`;
+                sendWhatsAppButton.style.display = "block";
+            };
+        });
+
+        // Stop recording
+        stopRecordingButton.addEventListener("click", () => {
+            mediaRecorder.stop();
+            stopRecordingButton.style.display = "none";
+        });
+
+        // Show the image once user confirms reply received
+        confirmReplyButton.addEventListener("click", () => {
+            rewardImage.style.display = "block";
+            confirmReplyButton.style.display = "none";
+        });
+
+        // Optional: Display the reply confirmation button after sending
+        sendWhatsAppButton.addEventListener("click", () => {
+            confirmReplyButton.style.display = "block";
+        });
+    </script>
+</body>
+</html>
